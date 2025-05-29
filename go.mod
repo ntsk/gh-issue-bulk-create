@@ -2,7 +2,7 @@ module github.com/ntsk/gh-issue-bulk-create
 
 go 1.24.2
 
-require github.com/cli/go-gh/v2 v2.12.0
+require github.com/cli/go-gh/v2 v2.12.1
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
