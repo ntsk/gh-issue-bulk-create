@@ -4,4 +4,10 @@
     "config:base"
   ],
   "rebaseWhen": "conflicted",
+  "packageRules": [
+    {
+      "matchDatasources": ["golang-version"],
+      "enabled": true
+    }
+  ]
 }
