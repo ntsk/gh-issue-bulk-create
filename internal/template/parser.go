@@ -52,36 +52,10 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 	}
 
 	// Extract labels
-	issue.Labels = []string{}
-	if labels, ok := metadata["labels"].(string); ok {
-		for _, label := range strings.Split(labels, ",") {
-			if label = strings.TrimSpace(label); label != "" {
-				issue.Labels = append(issue.Labels, label)
-			}
-		}
-	} else if labelsArray, ok := metadata["labels"].([]interface{}); ok {
-		for _, label := range labelsArray {
-			if labelStr, ok := label.(string); ok && labelStr != "" {
-				issue.Labels = append(issue.Labels, labelStr)
-			}
-		}
-	}
+	issue.Labels = parseStringList(metadata["labels"])
 
 	// Extract assignees
-	issue.Assignees = []string{}
-	if assignees, ok := metadata["assignees"].(string); ok {
-		for _, assignee := range strings.Split(assignees, ",") {
-			if assignee = strings.TrimSpace(assignee); assignee != "" {
-				issue.Assignees = append(issue.Assignees, assignee)
-			}
-		}
-	} else if assigneesArray, ok := metadata["assignees"].([]interface{}); ok {
-		for _, assignee := range assigneesArray {
-			if assigneeStr, ok := assignee.(string); ok && assigneeStr != "" {
-				issue.Assignees = append(issue.Assignees, assigneeStr)
-			}
-		}
-	}
+	issue.Assignees = parseStringList(metadata["assignees"])
 
 	// Extract milestone
 	if milestone, ok := metadata["milestone"].(string); ok {
@@ -89,4 +63,27 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 	}
 
 	return &issue, nil
+}
+
+// parseStringList converts a front matter value into a list of strings,
+// skipping entries that are empty
+func parseStringList(value interface{}) []string {
+	result := []string{}
+
+	switch v := value.(type) {
+	case string:
+		for _, item := range strings.Split(v, ",") {
+			if item = strings.TrimSpace(item); item != "" {
+				result = append(result, item)
+			}
+		}
+	case []interface{}:
+		for _, item := range v {
+			if itemStr, ok := item.(string); ok && itemStr != "" {
+				result = append(result, itemStr)
+			}
+		}
+	}
+
+	return result
 }
