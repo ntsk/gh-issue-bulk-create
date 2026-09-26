@@ -102,3 +102,90 @@ Body content`,
 		})
 	}
 }
+
+func TestParseIssueTemplateListFields(t *testing.T) {
+	// Test cases
+	testCases := []struct {
+		name              string
+		content           string
+		expectedLabels    []string
+		expectedAssignees []string
+	}{
+		{
+			name: "Empty value",
+			content: `---
+title: "Test Issue"
+labels: ""
+assignees: ""
+---
+Body content`,
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+		{
+			name: "Trailing empty value",
+			content: `---
+title: "Test Issue"
+labels: "bug, "
+assignees: "user1, "
+---
+Body content`,
+			expectedLabels:    []string{"bug"},
+			expectedAssignees: []string{"user1"},
+		},
+		{
+			name: "Array with empty value",
+			content: `---
+title: "Test Issue"
+labels:
+  - "bug"
+  - ""
+assignees:
+  - "user1"
+  - ""
+---
+Body content`,
+			expectedLabels:    []string{"bug"},
+			expectedAssignees: []string{"user1"},
+		},
+		{
+			name: "Empty array",
+			content: `---
+title: "Test Issue"
+labels: []
+assignees: []
+---
+Body content`,
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+		{
+			name: "Missing keys",
+			content: `---
+title: "Test Issue"
+---
+Body content`,
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			parser := NewParser()
+			issue, err := parser.ParseIssueTemplate(tc.content)
+			if err != nil {
+				t.Fatalf("Expected no error, got: %v", err)
+			}
+
+			if !reflect.DeepEqual(issue.Labels, tc.expectedLabels) {
+				t.Errorf("Expected labels %v, got %v", tc.expectedLabels, issue.Labels)
+			}
+
+			if !reflect.DeepEqual(issue.Assignees, tc.expectedAssignees) {
+				t.Errorf("Expected assignees %v, got %v", tc.expectedAssignees, issue.Assignees)
+			}
+		})
+	}
+}

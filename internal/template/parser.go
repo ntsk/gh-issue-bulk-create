@@ -52,30 +52,32 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 	}
 
 	// Extract labels
+	issue.Labels = []string{}
 	if labels, ok := metadata["labels"].(string); ok {
-		labelList := strings.Split(labels, ",")
-		for i, label := range labelList {
-			labelList[i] = strings.TrimSpace(label)
+		for _, label := range strings.Split(labels, ",") {
+			if label = strings.TrimSpace(label); label != "" {
+				issue.Labels = append(issue.Labels, label)
+			}
 		}
-		issue.Labels = labelList
 	} else if labelsArray, ok := metadata["labels"].([]interface{}); ok {
 		for _, label := range labelsArray {
-			if labelStr, ok := label.(string); ok {
+			if labelStr, ok := label.(string); ok && labelStr != "" {
 				issue.Labels = append(issue.Labels, labelStr)
 			}
 		}
 	}
 
 	// Extract assignees
+	issue.Assignees = []string{}
 	if assignees, ok := metadata["assignees"].(string); ok {
-		assigneeList := strings.Split(assignees, ",")
-		for i, assignee := range assigneeList {
-			assigneeList[i] = strings.TrimSpace(assignee)
+		for _, assignee := range strings.Split(assignees, ",") {
+			if assignee = strings.TrimSpace(assignee); assignee != "" {
+				issue.Assignees = append(issue.Assignees, assignee)
+			}
 		}
-		issue.Assignees = assigneeList
 	} else if assigneesArray, ok := metadata["assignees"].([]interface{}); ok {
 		for _, assignee := range assigneesArray {
-			if assigneeStr, ok := assignee.(string); ok {
+			if assigneeStr, ok := assignee.(string); ok && assigneeStr != "" {
 				issue.Assignees = append(issue.Assignees, assigneeStr)
 			}
 		}
