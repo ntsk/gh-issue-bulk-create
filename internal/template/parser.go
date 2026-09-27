@@ -66,7 +66,7 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 }
 
 // parseStringList converts a front matter value into a list of strings,
-// skipping entries that are empty
+// trimming each entry and skipping the ones that are empty
 func parseStringList(value interface{}) []string {
 	result := []string{}
 
@@ -79,8 +79,10 @@ func parseStringList(value interface{}) []string {
 		}
 	case []interface{}:
 		for _, item := range v {
-			if itemStr, ok := item.(string); ok && itemStr != "" {
-				result = append(result, itemStr)
+			if itemStr, ok := item.(string); ok {
+				if itemStr = strings.TrimSpace(itemStr); itemStr != "" {
+					result = append(result, itemStr)
+				}
 			}
 		}
 	}
