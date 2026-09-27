@@ -51,6 +51,34 @@ assignees: "{{assignee}}"
 
 You can use mustache syntax (`{{variable_name}}`) in the template to embed data from the CSV file.
 
+#### Labels and Assignees
+
+`labels` and `assignees` are optional. Omit the keys to create issues without them:
+
+```markdown
+---
+title: "{{title}}"
+---
+```
+
+Both fields accept either a comma-separated string or a YAML list:
+
+```markdown
+labels: "bug, frontend"
+assignees: "alice, bob"
+```
+
+```markdown
+labels:
+  - bug
+  - frontend
+assignees:
+  - alice
+  - bob
+```
+
+Empty entries are dropped. With `labels: "{{label1}}, {{label2}}"`, a row that fills in `label1` but leaves `label2` empty gets a single label rather than a blank one.
+
 ### CSV File
 
 The CSV file **must contain a header row** with column names that match the variable names used in the template.
