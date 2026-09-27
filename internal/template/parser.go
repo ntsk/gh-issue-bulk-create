@@ -52,34 +52,10 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 	}
 
 	// Extract labels
-	if labels, ok := metadata["labels"].(string); ok {
-		labelList := strings.Split(labels, ",")
-		for i, label := range labelList {
-			labelList[i] = strings.TrimSpace(label)
-		}
-		issue.Labels = labelList
-	} else if labelsArray, ok := metadata["labels"].([]interface{}); ok {
-		for _, label := range labelsArray {
-			if labelStr, ok := label.(string); ok {
-				issue.Labels = append(issue.Labels, labelStr)
-			}
-		}
-	}
+	issue.Labels = parseStringList(metadata["labels"])
 
 	// Extract assignees
-	if assignees, ok := metadata["assignees"].(string); ok {
-		assigneeList := strings.Split(assignees, ",")
-		for i, assignee := range assigneeList {
-			assigneeList[i] = strings.TrimSpace(assignee)
-		}
-		issue.Assignees = assigneeList
-	} else if assigneesArray, ok := metadata["assignees"].([]interface{}); ok {
-		for _, assignee := range assigneesArray {
-			if assigneeStr, ok := assignee.(string); ok {
-				issue.Assignees = append(issue.Assignees, assigneeStr)
-			}
-		}
-	}
+	issue.Assignees = parseStringList(metadata["assignees"])
 
 	// Extract milestone
 	if milestone, ok := metadata["milestone"].(string); ok {
@@ -87,4 +63,27 @@ func (p *Parser) ParseIssueTemplate(content string) (*models.Issue, error) {
 	}
 
 	return &issue, nil
+}
+
+// parseStringList converts a front matter value into a list of strings,
+// skipping entries that are empty
+func parseStringList(value interface{}) []string {
+	result := []string{}
+
+	switch v := value.(type) {
+	case string:
+		for _, item := range strings.Split(v, ",") {
+			if item = strings.TrimSpace(item); item != "" {
+				result = append(result, item)
+			}
+		}
+	case []interface{}:
+		for _, item := range v {
+			if itemStr, ok := item.(string); ok && itemStr != "" {
+				result = append(result, itemStr)
+			}
+		}
+	}
+
+	return result
 }
