@@ -13,14 +13,10 @@ test:
 	@echo "Running tests..."
 	@go test -v ./...
 
-# Ensure staticcheck is installed
-ensure-staticcheck:
-	@which staticcheck > /dev/null || (echo "Installing staticcheck..." && go install honnef.co/go/tools/cmd/staticcheck@latest)
-
 # Run linters
-lint: ensure-staticcheck
+lint:
 	@echo "Running staticcheck..."
-	@staticcheck ./...
+	@go tool staticcheck ./...
 	@echo "Running go vet..."
 	@go vet ./...
 	@echo "Running go fmt..."
