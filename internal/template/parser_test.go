@@ -149,6 +149,45 @@ Body content`,
 			expectedAssignees: []string{"user1"},
 		},
 		{
+			name: "Whitespace-only value",
+			content: `---
+title: "Test Issue"
+labels: "   "
+assignees: "   "
+---
+Body content`,
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+		{
+			name: "Array with whitespace-only value",
+			content: `---
+title: "Test Issue"
+labels:
+  - "bug"
+  - "   "
+assignees:
+  - "user1"
+  - "   "
+---
+Body content`,
+			expectedLabels:    []string{"bug"},
+			expectedAssignees: []string{"user1"},
+		},
+		{
+			name: "Array with padded value",
+			content: `---
+title: "Test Issue"
+labels:
+  - " bug "
+assignees:
+  - " user1 "
+---
+Body content`,
+			expectedLabels:    []string{"bug"},
+			expectedAssignees: []string{"user1"},
+		},
+		{
 			name: "Empty array",
 			content: `---
 title: "Test Issue"

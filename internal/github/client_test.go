@@ -1,8 +1,14 @@
 package github
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/cli/go-gh/v2/pkg/api"
 	"github.com/ntsk/gh-issue-bulk-create/pkg/models"
 )
 
@@ -197,5 +203,107 @@ func TestRateLimit(t *testing.T) {
 	}
 	if rateLimit.Rate.Remaining != 30 {
 		t.Errorf("Expected custom remaining 30, got %d", rateLimit.Rate.Remaining)
+	}
+}
+
+// captureTransport records the body of the request it handles and returns a
+// canned issue creation response
+type captureTransport struct {
+	body []byte
+}
+
+func (t *captureTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Body != nil {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		t.body = body
+	}
+
+	return &http.Response{
+		StatusCode: http.StatusCreated,
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Body:       io.NopCloser(strings.NewReader(`{"number": 1, "html_url": "https://github.com/test/repo/issues/1"}`)),
+		Request:    req,
+	}, nil
+}
+
+// TestCreateIssueRequestBody checks the list fields that the GitHub API
+// rejects as null
+func TestCreateIssueRequestBody(t *testing.T) {
+	// Test cases
+	testCases := []struct {
+		name              string
+		issue             *models.Issue
+		expectedLabels    []string
+		expectedAssignees []string
+	}{
+		{
+			name: "Nil list fields",
+			issue: &models.Issue{
+				Title: "Test Issue",
+				Body:  "This is a test issue",
+			},
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+		{
+			name: "Empty list fields",
+			issue: &models.Issue{
+				Title:     "Test Issue",
+				Body:      "This is a test issue",
+				Labels:    []string{},
+				Assignees: []string{},
+			},
+			expectedLabels:    []string{},
+			expectedAssignees: []string{},
+		},
+		{
+			name: "Populated list fields",
+			issue: &models.Issue{
+				Title:     "Test Issue",
+				Body:      "This is a test issue",
+				Labels:    []string{"bug"},
+				Assignees: []string{"user1"},
+			},
+			expectedLabels:    []string{"bug"},
+			expectedAssignees: []string{"user1"},
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			transport := &captureTransport{}
+			restClient, err := api.NewRESTClient(api.ClientOptions{
+				AuthToken: "test-token",
+				Transport: transport,
+			})
+			if err != nil {
+				t.Fatalf("Expected no error, got: %v", err)
+			}
+
+			client := WithClient(restClient)
+			if _, err := client.CreateIssue(tc.issue, "test/repo"); err != nil {
+				t.Fatalf("Expected no error, got: %v", err)
+			}
+
+			var requestBody struct {
+				Labels    []string `json:"labels"`
+				Assignees []string `json:"assignees"`
+			}
+			if err := json.Unmarshal(transport.body, &requestBody); err != nil {
+				t.Fatalf("Expected no error, got: %v", err)
+			}
+
+			if !reflect.DeepEqual(requestBody.Labels, tc.expectedLabels) {
+				t.Errorf("Expected labels %#v, got %#v", tc.expectedLabels, requestBody.Labels)
+			}
+
+			if !reflect.DeepEqual(requestBody.Assignees, tc.expectedAssignees) {
+				t.Errorf("Expected assignees %#v, got %#v", tc.expectedAssignees, requestBody.Assignees)
+			}
+		})
 	}
 }
