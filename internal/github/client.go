@@ -43,12 +43,23 @@ func (c *Client) CreateIssue(issue *models.Issue, repo string) (*models.IssueRes
 	// GitHub API response structure
 	response := &models.IssueResponse{}
 
+	// The API rejects null for these fields, and a nil slice marshals as null
+	labels := issue.Labels
+	if labels == nil {
+		labels = []string{}
+	}
+
+	assignees := issue.Assignees
+	if assignees == nil {
+		assignees = []string{}
+	}
+
 	// Build request body
 	requestBody := map[string]interface{}{
 		"title":     issue.Title,
 		"body":      issue.Body,
-		"labels":    issue.Labels,
-		"assignees": issue.Assignees,
+		"labels":    labels,
+		"assignees": assignees,
 	}
 
 	if issue.Milestone != "" {
