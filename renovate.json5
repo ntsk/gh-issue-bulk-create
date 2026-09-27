@@ -4,6 +4,7 @@
     "config:base"
   ],
   "rebaseWhen": "conflicted",
+  "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
       "matchDatasources": ["golang-version"],
