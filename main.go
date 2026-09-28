@@ -221,6 +221,7 @@ func main() {
 			fmt.Printf("Title: %s\n", issue.Title)
 			fmt.Printf("Labels: %v\n", issue.Labels)
 			fmt.Printf("Assignees: %v\n", issue.Assignees)
+			fmt.Printf("Milestone: %s\n", issue.Milestone)
 			fmt.Printf("Body:\n%s\n", issue.Body)
 			fmt.Println("=====================")
 		} else {
