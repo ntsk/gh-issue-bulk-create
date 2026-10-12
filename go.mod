@@ -2,7 +2,7 @@ module github.com/ntsk/gh-issue-bulk-create
 
 go 1.26.0
 
-require github.com/cli/go-gh/v2 v2.16.1
+require github.com/cli/go-gh/v2 v2.16.2
 
 require (
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
